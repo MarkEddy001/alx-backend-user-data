@@ -1,62 +1,75 @@
 #!/usr/bin/env python3
-""" API authentication
-"""
+""" Auth module"""
 from flask import request
 from typing import List, TypeVar
 
 
 class Auth:
-    """ manages the API authentication """
-    
+    """
+    Auth class for handling authentication and authorization.
+
+    Methods:
+    - require_auth(path: str, excluded_paths: List[str]) -> bool: Checks if
+    authentication is required for the given path.
+    - authorization_header(request=None) -> str: Retrieves the
+      authorization header from the request.
+    - current_user(request=None) -> TypeVar('User'): Retrieves
+    the current user based on the request.
+    """
+
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """ Determines if a given path requires authentication
+        """
+        Checks if authentication is required for the given path.
 
         Args:
-            path (str): The path to check.
-            excluded_paths (List[str]): A list of paths that do not require authentication.
+        - path (str): The path to check.
+        - excluded_paths (List[str]): List of paths that
+          are excluded from authentication.
 
         Returns:
-            bool: True if the path requires authentication, False otherwise.
+        - bool: True if authentication is required, False otherwise.
         """
-        if path is None or excluded_paths is None or not len(excluded_paths):
+        if path is None or excluded_paths is None or len(excluded_paths) == 0:
             return True
 
-        # Normalize the path
-        if path[-1] != '/':
-            path += '/'
+        if path.endswith('/'):
+            path = path[:-1]
 
-        for p in excluded_paths:
-            # Normalize the excluded path
-            if p[-1] != '/':
-                p += '/'
-            if p.endswith('*'):
-                if path.startswith(p[:-1]):
+        for excluded_path in excluded_paths:
+            if excluded_path.endswith('*'):
+                excluded_path = excluded_path[:-1]
+                if path.startswith(excluded_path):
                     return False
-            elif path == p:
-                return False
-
+            else:
+                if excluded_path.endswith('/'):
+                    excluded_path = excluded_path[:-1]
+                if path == excluded_path or path.startswith(
+                        excluded_path + '/'):
+                    return False
         return True
 
     def authorization_header(self, request=None) -> str:
-        """ Returns the value of the Authorization header from a request object
+        """
+        Retrieves the authorization header from the request.
 
         Args:
-            request (object, optional): The request object (default: None).
+        - request (optional): The request object.
 
         Returns:
-            str: The value of the Authorization header, or None if not present.
+        - str: The authorization header.
         """
-        if request is None:
+        if request is None or 'Authorization' not in request.headers:
             return None
-        return request.headers.get('Authorization')
+        return request.headers['Authorization']
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """ Placeholder method to be implemented in child classes
+        """
+        Retrieves the current user based on the request.
 
         Args:
-            request (object, optional): The request object (default: None).
+        - request (optional): The request object.
 
         Returns:
-            TypeVar('User'): The current user, or None if not implemented.
+        - TypeVar('User'): The current user.
         """
         return None
