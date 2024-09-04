@@ -60,11 +60,15 @@ def before_request():
     """ Before request """
     excluded_paths = ['/api/v1/status/', '/api/v1/unauthorized/',
                       '/api/v1/forbidden/', '/api/v1/auth_session/login/']
+    logging.debug(f"Request path: {request.path}")
     if auth and auth.require_auth(request.path, excluded_paths):
+        logging.debug("Authentication required")
         if not auth.authorization_header(request) and not auth.session_cookie(request):
+            logging.debug("No authorization header or session cookie")
             abort(401)
         request.current_user = auth.current_user(request)
         if request.current_user is None:
+            logging.debug("Current user is None")
             abort(403)
 
 if __name__ == "__main__":
