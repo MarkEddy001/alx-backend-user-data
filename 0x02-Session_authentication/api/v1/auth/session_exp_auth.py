@@ -3,6 +3,7 @@
 """
 import os
 from datetime import datetime, timedelta
+from models.user_session import UserSession
 from .session_auth import SessionAuth
 
 
